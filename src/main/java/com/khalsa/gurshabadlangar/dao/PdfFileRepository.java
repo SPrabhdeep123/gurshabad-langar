@@ -10,5 +10,4 @@ import com.khalsa.gurshabadlangar.entity.PdfFile;
 @Repository
 public interface PdfFileRepository extends JpaRepository<PdfFile, Long>{
 
-    Optional<PdfFile> findByFileName(String fileName);
 }

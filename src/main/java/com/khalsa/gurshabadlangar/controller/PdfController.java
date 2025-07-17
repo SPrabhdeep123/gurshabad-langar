@@ -23,6 +23,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import com.khalsa.gurshabadlangar.entity.PdfFile;
+import org.springframework.util.StringUtils;
+import org.springframework.http.MediaType;
 
 
 @RestController
@@ -45,25 +49,21 @@ public class PdfController {
     }
 */
 
-    private String uploadDir;
-
-    @PostMapping("/upload")
-    public ResponseEntity<String> uploadPdf(@RequestParam("file") MultipartFile file) {
-        if (file.isEmpty()) {
-            return ResponseEntity.badRequest().body("File is empty");
-        }
-        try {
-            Path copyLocation = Paths
-                    .get(uploadDir + File.separator + StringUtils.cleanPath(file.getOriginalFilename()));
-            Files.copy(file.getInputStream(), copyLocation, StandardCopyOption.REPLACE_EXISTING);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Could not store file " + file.getOriginalFilename());
-        }
-        return ResponseEntity.ok("File uploaded successfully");
+   @PostMapping("/upload")
+public ResponseEntity<String> uploadPdf(@RequestParam("file") MultipartFile file) {
+    if (file.isEmpty()) {
+        return ResponseEntity.badRequest().body("File is empty");
     }
 
+    try {
+        pdfFileService.save(file); // Delegate to service
+        return ResponseEntity.ok("File uploaded successfully");
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Could not store file " + file.getOriginalFilename());
+    }
+}
     @GetMapping("/test")
     public String test() {
         return "Controller is working!";

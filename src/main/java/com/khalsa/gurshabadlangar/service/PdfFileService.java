@@ -10,9 +10,7 @@ import com.khalsa.gurshabadlangar.entity.PdfFile;
 
 public interface PdfFileService{
 
-    String savePdf(MultipartFile file);
-    Optional<PdfFile> getPdfByName(String fileName);
     List<PdfFile> getAllPdfs();
+    PdfFile save(MultipartFile file);
 
-	PdfFileDTO createPDF(MultipartFile file, PdfFileDTO pdfFileDTO);
 }

@@ -2,6 +2,11 @@ package com.khalsa.gurshabadlangar.serviceImpl;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,82 +18,52 @@ import com.khalsa.gurshabadlangar.dao.PdfFileRepository;
 import com.khalsa.gurshabadlangar.dto.PdfFileDTO;
 import com.khalsa.gurshabadlangar.entity.PdfFile;
 import com.khalsa.gurshabadlangar.service.PdfFileService;
+import org.springframework.util.StringUtils;
 
 @Service
 public class PdfFileServiceImpl implements PdfFileService{
-
-    private static final String UPLOAD_DIR = "src/main/resources/static/pdfs/";
 
 
     @Autowired
     private PdfFileRepository pdfFileRepository;
 
-    private final String uploadDir = "uploads/";
+// Set your desired upload directory
+    private final String UPLOAD_DIR = "uploads";
 
-
-    @Override
-    public String savePdf(MultipartFile file) {
+     @Override
+    public PdfFile save(MultipartFile file) {
         try {
-            String filePath = UPLOAD_DIR + file.getOriginalFilename();
-            File destFile = new File(filePath);
-            file.transferTo(destFile);
-
-            PdfFile pdfFile = new PdfFile();
-            pdfFileRepository.save(pdfFile);
-
-            return "File uploaded successfully: " + file.getOriginalFilename();
-        } catch (IOException e) {
-            return "Failed to upload file: " + e.getMessage();
-        }
-    }
-
-    @Override
-    public Optional<PdfFile> getPdfByName(String fileName) {
-        return pdfFileRepository.findByFileName(fileName);
-    }
-
-    @Override
-    public List<PdfFile> getAllPdfs() {
-        return pdfFileRepository.findAll();
-    }
-
-    @Override
-    public PdfFileDTO createPDF(MultipartFile file, PdfFileDTO pdfFileDTO) {
-        try {
-            // Ensure the upload directory exists
-            File dir = new File(uploadDir);
-            if (!dir.exists()) {
-                dir.mkdirs();
+            // Create uploads directory if it does not exist
+            File directory = new File(UPLOAD_DIR);
+            if (!directory.exists()) {
+                directory.mkdirs();
             }
 
-            // Save the uploaded file
-            String filePath = uploadDir + file.getOriginalFilename();
-            File destFile = new File(filePath);
-            file.transferTo(destFile);
+            // Clean file name
+        String cleanedFileName = StringUtils.cleanPath(file.getOriginalFilename());
 
-            // Save file details to the database
+            // Build full file path
+            Path filePath = Paths.get(UPLOAD_DIR, cleanedFileName);
+
+            // Save file to the disk
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            // Save metadata to the database
             PdfFile pdfFile = new PdfFile();
-            pdfFile.setFileName(file.getOriginalFilename());
-            pdfFile.setFilePath(filePath);
-            pdfFile.setTitle(pdfFileDTO.getTitle());           // Optional fields
-            pdfFile.setDescription(pdfFileDTO.getDescription());
+            pdfFile.setFileName(cleanedFileName);
+            pdfFile.setFilePath(filePath.toString());
+            pdfFile.setTitle("Sample Title"); // You can make this dynamic later
+            pdfFile.setDescription("Sample Description");
 
-            PdfFile savedPdfFile = pdfFileRepository.save(pdfFile);
-
-            // Build and return DTO
-            PdfFileDTO responseDTO = new PdfFileDTO();
-            responseDTO.setId(savedPdfFile.getId());
-            responseDTO.setFileName(savedPdfFile.getFileName());
-            responseDTO.setFilePath(savedPdfFile.getFilePath());
-            responseDTO.setTitle(savedPdfFile.getTitle());
-            responseDTO.setDescription(savedPdfFile.getDescription());
-
-            return responseDTO;
+            return pdfFileRepository.save(pdfFile);
 
         } catch (IOException e) {
             throw new RuntimeException("Failed to upload file: " + e.getMessage(), e);
         }
     }
 
-
+    @Override
+public List<PdfFile> getAllPdfs() {
+    return pdfFileRepository.findAll();
+}
 }
