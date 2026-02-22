@@ -21,14 +21,16 @@ public class AudioController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadAudio(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<String> uploadAudio(@RequestParam("file") MultipartFile file,
+            @RequestParam("pdfId") Long pdfId,
+            @RequestParam("paragraphIndex") Integer paragraphIndex) {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body("Audio file is empty");
         }
 
         try {
-            audioFileService.save(file);
-            return ResponseEntity.ok("Audio file uploaded successfully");
+            audioFileService.save(file, pdfId, paragraphIndex);
+            return ResponseEntity.ok("Audio file uploaded and mapped successfully");
         } catch (Exception e) {
             logger.error("Error uploading audio file: {}", file.getOriginalFilename(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

@@ -22,4 +22,10 @@ public class AudioFile {
     private String title;
 
     private String description;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pdf_id")
+    private PdfFile pdfFile;
+
+    private Integer paragraphIndex;
 }

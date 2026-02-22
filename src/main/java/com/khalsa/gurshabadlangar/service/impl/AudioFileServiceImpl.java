@@ -16,7 +16,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.khalsa.gurshabadlangar.dao.AudioFileRepository;
+import com.khalsa.gurshabadlangar.dao.PdfFileRepository;
 import com.khalsa.gurshabadlangar.entity.AudioFile;
+import com.khalsa.gurshabadlangar.entity.PdfFile;
 import com.khalsa.gurshabadlangar.service.AudioFileService;
 
 @Service
@@ -25,17 +27,24 @@ public class AudioFileServiceImpl implements AudioFileService {
     private static final Logger logger = LoggerFactory.getLogger(AudioFileServiceImpl.class);
 
     private final AudioFileRepository audioFileRepository;
+    private final PdfFileRepository pdfFileRepository;
     private final String uploadDir;
 
     public AudioFileServiceImpl(AudioFileRepository audioFileRepository,
+            PdfFileRepository pdfFileRepository,
             @Value("${audio.upload-dir}") String uploadDir) {
         this.audioFileRepository = audioFileRepository;
+        this.pdfFileRepository = pdfFileRepository;
         this.uploadDir = uploadDir;
     }
 
     @Override
-    public AudioFile save(MultipartFile file) {
+    public AudioFile save(MultipartFile file, Long pdfId, Integer paragraphIndex) {
         try {
+            // Fetch the PdfFile to establish mapping
+            PdfFile pdfFile = pdfFileRepository.findById(pdfId)
+                    .orElseThrow(() -> new RuntimeException("PdfFile not found with id: " + pdfId));
+
             File directory = new File(uploadDir);
             if (!directory.exists()) {
                 boolean created = directory.mkdirs();
@@ -58,10 +67,14 @@ public class AudioFileServiceImpl implements AudioFileService {
             audioFile.setFileName(cleanedFileName);
             audioFile.setFilePath(filePath.toString());
             audioFile.setTitle(cleanedFileName);
-            audioFile.setDescription("Audio uploaded on " + java.time.LocalDateTime.now());
+            audioFile.setDescription(
+                    "Audio uploaded on " + java.time.LocalDateTime.now() + " mapped to PDF ID: " + pdfId);
+            audioFile.setPdfFile(pdfFile);
+            audioFile.setParagraphIndex(paragraphIndex);
 
             AudioFile savedEntity = audioFileRepository.save(audioFile);
-            logger.info("Audio metadata saved to database for file: {}", cleanedFileName);
+            logger.info("Audio metadata saved for file: {} mapped to PDF ID: {}, Paragraph: {}",
+                    cleanedFileName, pdfId, paragraphIndex);
             return savedEntity;
 
         } catch (IOException e) {

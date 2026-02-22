@@ -7,5 +7,5 @@ import com.khalsa.gurshabadlangar.entity.AudioFile;
 public interface AudioFileService {
     List<AudioFile> getAllAudioFiles();
 
-    AudioFile save(MultipartFile file);
+    AudioFile save(MultipartFile file, Long pdfId, Integer paragraphIndex);
 }
