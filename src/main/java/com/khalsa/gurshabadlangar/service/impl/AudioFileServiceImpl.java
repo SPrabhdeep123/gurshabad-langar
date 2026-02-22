@@ -40,6 +40,10 @@ public class AudioFileServiceImpl implements AudioFileService {
 
     @Override
     public AudioFile save(MultipartFile file, Long pdfId, Integer paragraphIndex) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Audio file is empty or null");
+        }
+
         try {
             // Fetch the PdfFile to establish mapping
             PdfFile pdfFile = pdfFileRepository.findById(pdfId)

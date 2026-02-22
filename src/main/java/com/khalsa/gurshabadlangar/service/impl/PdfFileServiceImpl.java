@@ -35,6 +35,10 @@ public class PdfFileServiceImpl implements PdfFileService {
 
     @Override
     public PdfFile save(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("File is empty or null");
+        }
+
         try {
             // Create uploads directory if it does not exist
             File directory = new File(uploadDir);
