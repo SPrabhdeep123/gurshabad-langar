@@ -26,17 +26,13 @@ public class PdfController {
 
     @PostMapping("/upload")
     public ResponseEntity<String> uploadPdf(@RequestParam("file") MultipartFile file) {
-        if (file.isEmpty()) {
-            return ResponseEntity.badRequest().body("File is empty");
-        }
-
         try {
             pdfFileService.save(file);
             return ResponseEntity.ok("File uploaded successfully");
         } catch (Exception e) {
             logger.error("Error uploading file: {}", file.getOriginalFilename(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Could not store file " + file.getOriginalFilename());
+                    .body(e.getMessage());
         }
     }
 
